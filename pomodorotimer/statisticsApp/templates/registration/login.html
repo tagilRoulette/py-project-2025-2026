@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Add</title>
+	</head>
+	
+	<body>
+		<h1>Введите имя пользователя и пароль.</h1>
+		<form method="post" action="">
+			{% csrf_token %}
+			{{ form }}
+			<input type="submit" value="Авторизоваться" />
+		</form>
+	</body>
+</html>
