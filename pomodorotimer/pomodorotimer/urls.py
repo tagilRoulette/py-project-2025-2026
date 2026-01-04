@@ -20,7 +20,7 @@ from authUser.views import MyLoginView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/', MyLoginView.as_view(), {'template_name': 'login.html'}, name='login'),
+    path('login/', MyLoginView.as_view(), name='login'),
     path('', include('statisticsApp.urls')),
     path('', include('django.contrib.auth.urls')),
 ]

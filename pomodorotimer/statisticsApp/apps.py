@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class MainappConfig(AppConfig):
+class CustomappConfig(AppConfig):
     name = 'statisticsApp'

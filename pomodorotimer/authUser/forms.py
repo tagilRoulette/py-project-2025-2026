@@ -44,7 +44,7 @@ class CustomUserChangeForm(UserChangeForm):
         fields = '__all__'
 
 
-class MyAuthForm(AuthenticationForm):
+class CustomAuthForm(AuthenticationForm):
     error_messages = {
         'invalid_login': _(
             "Incorrect username or password. Note that both "

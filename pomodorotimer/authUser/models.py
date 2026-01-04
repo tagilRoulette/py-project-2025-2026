@@ -50,6 +50,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = 'custom_user'
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
         # indexes = [
         #     models.Index(fields=['email']),
         #     models.Index(fields=['name']),
