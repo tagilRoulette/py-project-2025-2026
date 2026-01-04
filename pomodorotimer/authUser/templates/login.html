@@ -5,11 +5,11 @@
 	</head>
 	
 	<body>
-		<h1>Введите имя пользователя и пароль.</h1>
+		<h1>Enter username and password.</h1>
 		<form method="post" action="">
 			{% csrf_token %}
 			{{ form }}
-			<input type="submit" value="Авторизоваться" />
+			<input type="submit" value="Log in" />
 		</form>
 	</body>
 </html>

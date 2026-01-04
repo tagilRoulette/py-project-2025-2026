@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import QuerySet, Sum, Value
+from django.db.models import QuerySet, Case, When, Sum, Value, IntegerField
+from django.db.models.functions import ExtractWeek, ExtractYear, ExtractMonth
 from .models import *
 from .forms import *
 from matplotlib import pyplot
@@ -11,23 +12,70 @@ ACTIVITIES = Activity.objects.values_list('name', flat=True)
 
 
 @login_required
-# TODO: Finish the function.
+# TODO: Finish the function. Build the histogram.
 def show_stats(request: HttpRequest) -> HttpResponse:
-    def get_data_for_timespan(username: str, 
-                              aggregate_by: str,
+
+    def get_data_for_timespan(username: str,
+                              aggregate_by: str = 'Daily',
                               start_date: date = date.today(),
                               end_date: date = date.today()) -> QuerySet:
+        break_act_id_list = [
+            Activity.objects.get(name='break').id,
+            Activity.objects.get(name='long_break').id
+        ]
+        sum_expression = {
+            'work': Sum(
+                Case(
+                    When(activity_type=Activity.objects.get(name='work').id,
+                         then='time_span'),
+                    default=Value(0),
+                    output_field=IntegerField()
+                )),
+            'break': Sum(
+                Case(
+                    When(activity_type__in=break_act_id_list,
+                         then='time_span'),
+                    default=Value(0),
+                    output_field=IntegerField()
+                ))
+        }
         user_records = ActivityTime.objects.filter(
             owner=username,
-            date__date__range=(start_date, end_date))
+            date__range=(start_date, end_date))
+
         match aggregate_by:
             case 'Daily':
-                user_records.values(days=Value('date__day'))  # TODO: incorrect. see notes.
+                user_records = (
+                    user_records
+                    .values('date')
+                    .annotate(work_time=sum_expression['work'],
+                              break_time=sum_expression['break'])
+                )
             case 'Weekly':
-                pass
+                user_records = (
+                    user_records
+                    .annotate(
+                        week=ExtractWeek('date'),
+                        year=ExtractYear('date'),
+                    )
+                    .values('week', 'year')
+                    .annotate(work_time=sum_expression['work'],
+                              break_time=sum_expression['break'])
+                )
             case 'Monthly':
-                pass
-        return 
+                user_records = (
+                    user_records
+                    .annotate(
+                        month=ExtractMonth('date'),
+                        year=ExtractYear('date'),
+                    )
+                    .values('month', 'year')
+                    .annotate(work_time=sum_expression['work'],
+                              break_time=sum_expression['break'])
+                )
+            case _:
+                raise ValueError('Wrong "aggregate_by" argument.')
+        return user_records.order_by('date')
 
     def get_data_for_month(username: str,
                            month: int) -> QuerySet:
@@ -52,38 +100,18 @@ def show_stats(request: HttpRequest) -> HttpResponse:
 
             return render(request, 'stats.html', {'stats_form': ChangeTimeSpanForm})
         form = ChangeTimeSpanForm(request.POST)
+        if not form.is_valid():
+            raise ValidationError('Form is not filled correctly.')
         time_span = form.cleaned_data['time_span']
-        user_records = QuerySet()
+        start_date = form.cleaned_data['start_date']
+        end_date = form.cleaned_data['end_date']
         if time_span:
-            today = date.today()
-            match time_span:
-                case 'Daily':
-                    user_records = get_data_for_timespan(request.user.username)
-                    # TODO: build histogram
-                    # return render(get_data_for_timespan(request.user.username), 'stats.html', {'stats_form': ChangeTimeSpanForm, 'stats': })
-                case 'Weekly':
-                    days_to_monday = today.weekday()
-                    monday_date = today - timedelta(days=days_to_monday)
-                    sunday_date = monday_date + timedelta(days=7)
-                    user_records = get_data_for_timespan(
-                        request.user.username, monday_date, sunday_date)
-                    # TODO: build histogram
-                case 'Monthly':
-                    user_records = get_data_for_month(
-                        request.user.username, date.month)
-                    # TODO: build histogram
-
-        # userRecords = ActivityTime.objects.filter(owner=request.user.username)
-
-        # work_time_id = Activity.objects.filter(name='work').first().id
-        # work_time = userRecords.filter(activity_type=work_time_id)
-
-        # break_time_id = Activity.objects.filter(name='break').first().id
-        # break_time = userRecords.filter(activity_type=break_time_id)
-
-        # long_break_time_id = Activity.objects.filter(
-        #     name='long_break').first().id
-        # long_break_time = userRecords.filter(activity_type=long_break_time_id)
+            user_records = get_data_for_timespan(
+                request.user.username,
+                time_span,
+                start_date,
+                end_date)
+            # TODO: build histogram
 
         plot = pyplot.hist()
 

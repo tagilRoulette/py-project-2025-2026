@@ -5,18 +5,24 @@ from datetime import date, timedelta
 
 class ChangeTimeSpanForm(forms.Form):
     preset_time_span = [
-        ('1', 'Daily'),
-        ('2', 'Weekly'),
-        ('3', 'Monthly'),
+        ('Daily', 'Daily'),
+        ('Weekly', 'Weekly'),
+        ('Monthly', 'Monthly'),
     ]
     time_span = forms.ChoiceField(
         widget=forms.RadioSelect,
         choices=preset_time_span,
     )
+
+    input_time_formats = [
+        r'%d/%m/%Y',
+        r'%d.%m.%Y',
+        r'%d-%m-%Y'
+    ]
     start_date = forms.DateField(
-        input_formats=[r'%d/%m/%Y'], required=False)
+        input_formats=input_time_formats, required=False)
     end_date = forms.DateField(
-        input_formats=[r'%d/%m/%Y'], required=False)
+        input_formats=input_time_formats, required=False)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -25,6 +31,10 @@ class ChangeTimeSpanForm(forms.Form):
 
         # has_full_dates = start_date and end_date
         # if has_full_dates:
+        if end_date is None:
+            end_date = date.today()
+        if start_date is None:
+            start_date = date.today()
         if end_date < start_date:
             raise ValidationError({
                 'end_date': 'Дата окончания не может быть раньше даты начала'

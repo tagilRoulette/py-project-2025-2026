@@ -5,6 +5,12 @@ from authUser.models import *
 class Activity(models.Model):
     name = models.CharField(max_length=16)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'Activities'
+
 
 class ActivityTime(models.Model):
     owner = models.ForeignKey(CustomUser, models.CASCADE)
@@ -12,12 +18,22 @@ class ActivityTime(models.Model):
     activity_type = models.ForeignKey(Activity, models.PROTECT)
     date = models.DateField()
 
+    def __str__(self):
+        return self.owner.username + ' ' + self.date.strftime(r'%d/%m/%Y')
+
 
 class PomodoroTimings(models.Model):
     owner = models.ForeignKey(CustomUser, models.CASCADE)
     work_time = models.IntegerField()
     break_time = models.IntegerField()
     long_break_time = models.IntegerField()
+
+    def __str__(self):
+        return self.owner.username + "'s timer"
+
+    class Meta:
+        verbose_name = 'Pomodoro Timings'
+        verbose_name_plural = 'Pomodoro Timings'
 
 
 class Sheet(models.Model):

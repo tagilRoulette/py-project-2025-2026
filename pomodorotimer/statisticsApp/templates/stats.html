@@ -5,11 +5,11 @@
 	</head>
 	
 	<body>
-		<h2>Введите имя пользователя и пароль.</h2>
+		<h2>Choose time span and start and end dates.</h2>
 		<form method="post" action="">
 			{% csrf_token %}
 			{{ stats_form }}
-			<input type="submit" value="Авторизоваться" />
+			<input type="submit" value="Show statistics" />
 		</form>
 	</body>
 </html>
