@@ -1,15 +1,22 @@
 <!doctype html>
 <html>
-	<head>
-		<title>Add</title>
-	</head>
-	
-	<body>
-		<h2>Choose time span and start and end dates.</h2>
-		<form method="post" action="">
-			{% csrf_token %}
-			{{ stats_form }}
-			<input type="submit" value="Show statistics" />
-		</form>
-	</body>
+
+<head>
+	<title>Add</title>
+</head>
+
+<body>
+	<h2>Choose time span and start and end dates.</h2>
+	<p>Note that inputting a date span shorter than chosen time
+		aggregation interval will automatically choose a widest
+		interval possible.</p>
+	<form method="post" action="">
+		{% csrf_token %}
+		{{ stats_form }}
+		<input type="submit" value="Show statistics" />
+	</form>
+	<h3>Your {{ stats_period_info }} stats.</h3>
+	{{ stats_graph|safe }}
+</body>
+
 </html>

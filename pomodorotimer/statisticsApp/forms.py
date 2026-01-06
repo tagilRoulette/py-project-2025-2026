@@ -1,17 +1,24 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
+from enum import StrEnum, auto
+
+
+class DateAggInterval(StrEnum):
+    Daily = auto()
+    Weekly = auto()
+    Monthly = auto()
 
 
 class ChangeTimeSpanForm(forms.Form):
-    preset_time_span = [
-        ('Daily', 'Daily'),
-        ('Weekly', 'Weekly'),
-        ('Monthly', 'Monthly'),
+    preset_date_agg_interval = [
+        (DateAggInterval.Daily, 'Daily'),
+        (DateAggInterval.Weekly, 'Weekly'),
+        (DateAggInterval.Monthly, 'Monthly'),
     ]
-    time_span = forms.ChoiceField(
+    date_agg_interval = forms.ChoiceField(
         widget=forms.RadioSelect,
-        choices=preset_time_span,
+        choices=preset_date_agg_interval,
     )
 
     input_time_formats = [
@@ -39,12 +46,12 @@ class ChangeTimeSpanForm(forms.Form):
             raise ValidationError({
                 'end_date': 'Дата окончания не может быть раньше даты начала'
             })
-        #     cleaned_data['time_span'] = None
+        #     cleaned_data['date_agg_interval'] = None
         # else:
         #     cleaned_data['start_date'] = None
         #     cleaned_data['end_date'] = None
             # today = date.today()
-            # match cleaned_data.get('time_span'):
+            # match cleaned_data.get('date_agg_interval'):
             #     case 'Today':
             #         start_date = today
             #         end_date = today
