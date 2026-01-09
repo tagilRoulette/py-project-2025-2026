@@ -1,3 +1,5 @@
+from io import StringIO
+from datetime import date
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -6,19 +8,19 @@ from django.db.models.functions import ExtractWeek, ExtractYear, ExtractMonth
 from .models import *
 from .forms import *
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot
-from datetime import date
-from io import StringIO, BytesIO
+
 
 ACTIVITIES = Activity.objects.values_list('name', flat=True)
 TIME_FORMAT = r'%d.%m.%Y'
-GRAPH_BAR_SPACING = 0.5
+GRAPH_BAR_SPACING = 0.15
+GRAPH_BAR_WIDTH = 0.15
 
 
 @login_required
-# TODO: Finish the function. Build the histogram.
 def show_stats(request: HttpRequest) -> HttpResponse:
-
     # TODO: move the function to model?
     def get_data_for_timespan(username: str,
                               start_date: date,
@@ -81,51 +83,65 @@ def show_stats(request: HttpRequest) -> HttpResponse:
                 )
             case _:
                 raise ValueError('Wrong "aggregate_by" argument.')
-        return user_records.order_by('date')
+        # return user_records.order_by('date')
+        return user_records
 
     def build_bars_graph(values_dicts: list[dict],
-                         bar_spacing: float):
-        # fig = pyplot.subplots(figsize=(12, 8))
-
+                         bar_spacing: float,
+                         bar_width: float):
         bars = []
-        for day_index, day_data in enumerate(values_dicts):
-            if day_index == 0:
+        dates = []
+        work_time = [timespan_data['work_time']
+                     for timespan_data in values_dicts]
+        break_time = [timespan_data['break_time']
+                      for timespan_data in values_dicts]
+        for timespan_index, timespan_data in enumerate(values_dicts):
+            if timespan_index == 0:
                 bars.append(np.arange(len(values_dicts)))
             else:
-                bars.append(
-                    [x_coord + bar_spacing
-                     for x_coord in bars[day_index - 1]])
+                bars.append([x_coord + bar_spacing
+                             for x_coord in bars[timespan_index - 1]])
 
-            # TODO: sometimes v is int (e.g., month, week), sometimes is a date. need to 
-            # unify the process logic to later label values on plot w/ date_str
-            date_data = tuple(v.strftime(TIME_FORMAT) 
-                              for k, v in day_data.items()
-                              if k not in ('work', 'break'))
-            date_str = ' - '.join(date_data)
-            day_data = (day_data['work'], day_data['break'])
-            pyplot.bar(
-                bars[day_index],
-                day_data,
-                width=bar_spacing,
-                label=date_str)
-        # for value_index, value in values:
-        #     if value_index == 0:
-        #         bars.append(np.arange(len(value)))
-        #     else:
-        #         bars.append(
-        #             [x_value + bar_spacing for x_value in bars[value_index - 1]])
-        #     pyplot.bar(bars[value_index], value,
-        #                width=bar_spacing, label=values_names[value_index])
+            date_data = tuple(v
+                              for k, v in timespan_data.items()
+                              if k not in ('work_time', 'break_time'))
+            date_data = tuple(d.strftime(TIME_FORMAT)
+                              if isinstance(d, date)
+                              else str(d)
+                              for d in date_data)
+            dates.append(' - '.join(date_data))
+
+        if not bars:
+            return 'No data.'
+        if len(bars) == 1:
+            pyplot.bar(bars[0] + 0.08,
+                       work_time,
+                       bar_width,
+                       label='Work time')
+            pyplot.bar(bars[0] - 0.08,
+                       break_time,
+                       bar_width,
+                       label='Break time')
+            pyplot.xticks(bars[0], dates)
+        else:
+            pyplot.bar([bar - 0.08 for bar in bars[1]],
+                       work_time,
+                       bar_width,
+                       label='Work time')
+            pyplot.bar([bar + 0.08 for bar in bars[1]],
+                       break_time,
+                       bar_width,
+                       label='Break time')
+            pyplot.xticks(bars[1], dates)
         pyplot.legend()
 
-        # TODO: string argument expected, got 'bytes'. see into the problem
-        # img = BytesIO()
         img = StringIO()
-        pyplot.figure().savefig(img, format='jpeg')
+        pyplot.savefig(img, format='svg')
+        pyplot.close()
         img.seek(0)
         return img.getvalue()
 
-    def form_response_context(stats_graph: str,
+    def form_response_context(stats_graph: bytes,
                               start_date: date,
                               end_date: date,
                               agg_interval,
@@ -171,7 +187,8 @@ def show_stats(request: HttpRequest) -> HttpResponse:
                                              start_date,
                                              end_date)
         graph = build_bars_graph(user_records,
-                                 GRAPH_BAR_SPACING)
+                                 GRAPH_BAR_SPACING,
+                                 GRAPH_BAR_WIDTH)
         context = form_response_context(graph,
                                         start_date,
                                         end_date,
@@ -194,7 +211,9 @@ def show_stats(request: HttpRequest) -> HttpResponse:
                                          start_date,
                                          end_date,
                                          date_agg_interval)
-    graph = build_bars_graph(user_records, GRAPH_BAR_SPACING)
+    graph = build_bars_graph(user_records,
+                             GRAPH_BAR_SPACING,
+                             GRAPH_BAR_WIDTH)
     context = form_response_context(graph,
                                     start_date,
                                     end_date,

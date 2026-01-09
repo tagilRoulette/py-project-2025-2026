@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from datetime import date, timedelta
+from datetime import date
 from enum import StrEnum, auto
 
 
@@ -19,6 +19,7 @@ class ChangeTimeSpanForm(forms.Form):
     date_agg_interval = forms.ChoiceField(
         widget=forms.RadioSelect,
         choices=preset_date_agg_interval,
+        label='Date aggregation interval'
     )
 
     input_time_formats = [
@@ -36,32 +37,13 @@ class ChangeTimeSpanForm(forms.Form):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
 
-        # has_full_dates = start_date and end_date
-        # if has_full_dates:
         if end_date is None:
             end_date = date.today()
         if start_date is None:
             start_date = date.today()
         if end_date < start_date:
             raise ValidationError({
-                'end_date': 'Дата окончания не может быть раньше даты начала'
+                'end_date': 'End date can\'t be earlier than start date.'
             })
-        #     cleaned_data['date_agg_interval'] = None
-        # else:
-        #     cleaned_data['start_date'] = None
-        #     cleaned_data['end_date'] = None
-            # today = date.today()
-            # match cleaned_data.get('date_agg_interval'):
-            #     case 'Today':
-            #         start_date = today
-            #         end_date = today
-            #     case 'Week':
-            #         days_to_monday = today.weekday()
-            #         monday_date = today - timedelta(days=days_to_monday)
-            #         sunday_date = monday_date + timedelta(days=7)
-            #         start_date = monday_date
-            #         end_date = sunday_date
-            #     case 'Month':
-            #         month_start = today.
 
         return cleaned_data
