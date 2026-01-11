@@ -1,3 +1,4 @@
+from matplotlib import pyplot
 from io import StringIO
 from datetime import date
 from django.shortcuts import render, redirect
@@ -10,7 +11,6 @@ from .forms import *
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-from matplotlib import pyplot
 
 
 ACTIVITIES = Activity.objects.values_list('name', flat=True)
@@ -21,7 +21,6 @@ GRAPH_BAR_WIDTH = 0.15
 
 @login_required
 def show_stats(request: HttpRequest) -> HttpResponse:
-    # TODO: move the function to model?
     def get_data_for_timespan(username: str,
                               start_date: date,
                               end_date: date,
@@ -83,7 +82,6 @@ def show_stats(request: HttpRequest) -> HttpResponse:
                 )
             case _:
                 raise ValueError('Wrong "aggregate_by" argument.')
-        # return user_records.order_by('date')
         return user_records
 
     def build_bars_graph(values_dicts: list[dict],
@@ -144,17 +142,17 @@ def show_stats(request: HttpRequest) -> HttpResponse:
     def form_response_context(stats_graph: bytes,
                               start_date: date,
                               end_date: date,
-                              agg_interval,
-                              **kwargs) -> dict:
+                              username: str,
+                              agg_interval) -> dict:
         context = {'stats_graph': stats_graph,
-                   'stats_form': ChangeTimeSpanForm}
+                   'stats_form': ChangeTimeSpanForm,
+                   'username': username}
         start_date = start_date.strftime(TIME_FORMAT)
         end_date = end_date.strftime(TIME_FORMAT)
         if start_date == end_date:
             context['stats_period_info'] = start_date
         else:
             context['stats_period_info'] = f'{start_date} - {end_date} {agg_interval}'
-        context.update(kwargs)
         return context
 
     def correct_agg_time_period(start_date: date,
@@ -179,8 +177,6 @@ def show_stats(request: HttpRequest) -> HttpResponse:
                                                    DateAggInterval.Weekly)
                 return agg_period
 
-    if not request.user.is_authenticated:
-        return redirect('login')
     if request.method == 'GET':
         start_date = end_date = date.today()
         user_records = get_data_for_timespan(request.user.username,
@@ -192,6 +188,7 @@ def show_stats(request: HttpRequest) -> HttpResponse:
         context = form_response_context(graph,
                                         start_date,
                                         end_date,
+                                        request.user.username,
                                         DateAggInterval.Daily)
         return render(request,
                       'stats.html',
@@ -217,11 +214,14 @@ def show_stats(request: HttpRequest) -> HttpResponse:
     context = form_response_context(graph,
                                     start_date,
                                     end_date,
+                                    request.user.username,
                                     date_agg_interval)
     return render(request,
                   'stats.html',
                   context)
 
+def main_page(request):
+    return redirect('stats/')
 
 # TODO: Add the function.
 def show_timer(request: HttpRequest) -> HttpResponse:

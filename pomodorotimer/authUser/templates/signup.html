@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Sign up</title>
+</head>
+
+<body>
+	<h2>Fill the boxes below to sign up.</h2>
+	<form method="post" action="">
+		{% csrf_token %}
+		{{ form }}
+		<input type="submit" value="Sign up" />
+	</form>
+	<h4>Already have an account?</h4>
+	<button type="submit" onclick="location.href='/login/';">Log in</button>
+</body>
+
+</html>

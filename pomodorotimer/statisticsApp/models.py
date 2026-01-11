@@ -24,9 +24,9 @@ class ActivityTime(models.Model):
 
 class PomodoroTimings(models.Model):
     owner = models.ForeignKey(CustomUser, models.CASCADE)
-    work_time = models.IntegerField()
-    break_time = models.IntegerField()
-    long_break_time = models.IntegerField()
+    work_time = models.IntegerField(default=25)
+    break_time = models.IntegerField(default=5)
+    long_break_time = models.IntegerField(default=15)
 
     def __str__(self):
         return self.owner.username + "'s timer"
@@ -34,8 +34,3 @@ class PomodoroTimings(models.Model):
     class Meta:
         verbose_name = 'Pomodoro Timings'
         verbose_name_plural = 'Pomodoro Timings'
-
-
-class Sheet(models.Model):
-    owner = models.ForeignKey(CustomUser, models.CASCADE, primary_key=True)
-    url = models.CharField(max_length=128)

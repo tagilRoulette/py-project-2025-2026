@@ -6,6 +6,7 @@
 </head>
 
 <body>
+	<h3>{{ username }}'s stats</h3>
 	<h2>Choose time span and start and end dates.</h2>
 	<p>Note that inputting a date span shorter than chosen time
 		aggregation interval will automatically choose a widest
@@ -15,6 +16,12 @@
 		{{ stats_form }}
 		<input type="submit" value="Show statistics" />
 	</form>
+	<button type="submit" onclick="location.href='/timer/manual/';">
+		Add time records manually
+	</button>
+	<button type="submit" onclick="location.href='/login/';">
+		Log in another account
+	</button>
 	<h3>Your {{ stats_period_info }} stats.</h3>
 	{{ stats_graph|safe }}
 </body>

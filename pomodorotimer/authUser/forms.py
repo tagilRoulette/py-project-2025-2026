@@ -1,30 +1,31 @@
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
 from django import forms
 from .models import CustomUser
 
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
-        label=_("Email"),
+        label=("Email"),
         max_length=64,
     )
 
     username = forms.CharField(
-        label=_("Username"),
+        label=("Username"),
         max_length=64,
     )
 
     password1 = forms.CharField(
-        label=_("Password"),
+        label=("Password"),
         strip=False,
+        widget=forms.PasswordInput,
     )
 
     password2 = forms.CharField(
-        label=_("Password confirmation"),
+        label=("Password confirmation"),
         strip=False,
-        help_text=_("Enter the same password as before, for verification."),
+        help_text=("Enter the same password as before, for verification."),
+        widget=forms.PasswordInput,
     )
 
     class Meta:
@@ -34,7 +35,7 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if CustomUser.objects.filter(email=email).exists():
-            raise ValidationError(_("A user with that email already exists."))
+            raise ValidationError(("A user with that email already exists."))
         return email
 
 
@@ -46,9 +47,9 @@ class CustomUserChangeForm(UserChangeForm):
 
 class CustomAuthForm(AuthenticationForm):
     error_messages = {
-        'invalid_login': _(
+        'invalid_login': (
             "Incorrect username or password. Note that both "
             "fields are case-sensitive."
         ),
-        'inactive': _("This account is inactive."),
+        'inactive': ("This account is inactive."),
     }

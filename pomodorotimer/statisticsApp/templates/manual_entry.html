@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Make a record</title>
+</head>
+
+<body>
+	<h2>Choose activity type and enter amount of time spent
+		to make a record.</h2>
+	<form method="post" action="">
+		{% csrf_token %}
+		{{ form }}
+		<input type="submit" value="Make a record" />
+	</form>
+	<p>{{ success_msg }}</p>
+	<button type="submit" onclick="location.href='/stats/';">
+		Back to stats
+	</button>
+</body>
+
+</html>

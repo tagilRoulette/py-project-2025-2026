@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Pomodoro timings</title>
+</head>
+
+<body>
+	<h2>Change timings of your pomodoro timer.</h2>
+	<h3>Your current timings are...</h3>
+    <p>Work time: {{ work_time }}</p>
+    <p>Break time: {{ break_time }}</p>
+    <p>Long break time: {{ long_break_time }}</p>
+	<form method="post" action="">
+		{% csrf_token %}
+		{{ change_timings_form }}
+		<input type="submit" value="Change timings" />
+	</form>
+</body>
+
+</html>
